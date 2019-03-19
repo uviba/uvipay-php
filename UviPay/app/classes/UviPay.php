@@ -22,6 +22,10 @@ class UviPay
           'type'    => "request"
       ),
     );
+    $json = new ResponseObject;
+    $json->set(self::$apiDefError);
+    self::$apiDefError =  $json;
+     
     /*
   self::$apiDefError = (object) array
     (
