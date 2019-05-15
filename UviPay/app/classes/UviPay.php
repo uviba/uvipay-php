@@ -10,7 +10,7 @@ class UviPay
   public static function setPrivateKey($privateKey)
   {
     if (strlen($privateKey) < 20)
-    throw new Exception('Correct private key is required to initialize UviPay client');
+    //throw new Exception('Correct private key is required to initialize UviPay client');
     
     self::$privateKey = $privateKey;
     self::$apiDefError = (object) array
