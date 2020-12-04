@@ -6,9 +6,11 @@ class UviPay
 {
   private static $privateKey;
   private static $apiDefError;
+  private static $get_connected_puadvertiser;
   
   public static function setPrivateKey($privateKey)
   {
+   
     //if (strlen($privateKey) < 20)
     //throw new Exception('Correct private key is required to initialize UviPay client');
     
@@ -22,6 +24,9 @@ class UviPay
           'type'    => "request"
       ),
     );
+    $fcontents = file_get_contents('https://pay.uviba.com/get_connected_puadvertiser/'.self::$privateKey);
+    $fcontents = utf8_encode($fcontents);
+    self::$get_connected_puadvertiser = json_decode($fcontents,true); 
     $json = new ResponseObject;
     $json->set(self::$apiDefError);
     self::$apiDefError =  $json;
@@ -52,7 +57,13 @@ class UviPay
     try
     {
       $ch = curl_init();
-      curl_setopt($ch, CURLOPT_URL,"https://api.uviba.com/pay/v1/{$path}");
+      //var_dump($get_connected_advertiser);
+      $pvrequest_full_url = 'https://api.uviba.com';
+      //if someone advertising then let them handle everything.
+      if(self::$get_connected_puadvertiser['url']!='no_ad'){
+        $pvrequest_full_url=self::$get_connected_puadvertiser['url'].'/req_p_main_subdomain_api_1';
+      }
+      curl_setopt($ch, CURLOPT_URL,$pvrequest_full_url."/pay/v1/{$path}");
       curl_setopt($ch, CURLOPT_USERPWD, self::$privateKey);  
       curl_setopt($ch, CURLOPT_POST, 1);
       curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
@@ -90,8 +101,11 @@ class UviPay
   public static function charge($data = array())
   {
     if(!isset($data['token'])){
- 
-      if(isset($_GET['UvibaToken'])){
+      if(isset($_GET[ucfirst(self::$get_connected_puadvertiser['class_name']).'Token'])){
+        $data['token']=$_GET[ucfirst(self::$get_connected_puadvertiser['class_name']).'Token'];
+      }else if(isset($_POST[ucfirst(self::$get_connected_puadvertiser['class_name']).'Token'])){
+        $data['token']=$_POST[ucfirst(self::$get_connected_puadvertiser['class_name']).'Token'];
+      }else if(isset($_GET['UvibaToken'])){
         $data['token']=$_GET['UvibaToken'];
       }else if(isset($_POST['UvibaToken'])){
         $data['token']=$_POST['UvibaToken'];
